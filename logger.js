@@ -3,10 +3,12 @@ const fs = require('fs');
 
 module.exports = class Logger {
     constructor(name) {
+        this.filename = new Date().toJSON();
+        this.name = name;
         if (!fs.existsSync(`/home/hipi/Sites/GooDee/_utils/out/${name}`)) {
             fs.mkdirSync(`/home/hipi/Sites/GooDee/_utils/out/${name}`);
         }
-        this.logger = fs.createWriteStream(`/home/hipi/Sites/GooDee/_utils/out/${name}/${(new Date().toJSON())}.log`, {
+        this.logger = fs.createWriteStream(`/home/hipi/Sites/GooDee/_utils/out/${this.name}/${this.filename}.log`, {
             flags: 'a'
         });
     }
@@ -21,8 +23,15 @@ module.exports = class Logger {
         keys.length && this.logger.write('\n')
 
     }
+    rm() {
+        const data = fs.readFileSync(`/home/hipi/Sites/GooDee/_utils/out/${this.name}/${this.filename}.log`)
+        if (!data.length) {
+            fs.unlinkSync(`/home/hipi/Sites/GooDee/_utils/out/${this.name}/${this.filename}.log`)
+        }
+    }
     finish() {
         this.logger.end();
+        this.rm();
     }
 }
 
