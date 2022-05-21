@@ -1,0 +1,1 @@
+../nft-scraper/browser.js
