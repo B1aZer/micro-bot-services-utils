@@ -2,6 +2,8 @@
 // const db = new DB(filename);
 // db.set(1, 2)
 // for [k,v] of db
+const fs = require('fs');
+const path = require('path');
 const main = require('require-main-filename')();
 
 // TODO: extends Map
@@ -9,7 +11,7 @@ module.exports = class DB {
     #path;
     #map;
     constructor(filename) {
-        this.#path = `${main}/${filename}.db`;
+        this.#path = `${path.dirname(main)}/${filename}.db`;
         this.#map = this.load();
     }
     set(k, v) {
