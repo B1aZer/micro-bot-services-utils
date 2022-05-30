@@ -59,6 +59,7 @@ function getLinesFor(name, id) {
 }
 
 function formatItems(lines) {
+    // .map with left null values in array
     const items = lines.flatMap(line => {
         if (line?.trim()) {
             return {
@@ -80,5 +81,7 @@ function splitItems(items, limit) {
 function orderItems(items, order) {
     if (order === 'date')
         return items.sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (order)
+        return items.sort((a, b) => a[order] - b[order]);
     return items;
 } 
