@@ -22,6 +22,12 @@ process.on('uncaughtException', err => {
 
 app.use(express.json());
 
+const mapFns = {
+    'rare-upcoming': upcomingMap,
+    //TODO:
+    'twitter-following': upcomingMap,
+}
+
 //save?name&data=
 // open file
 //write
@@ -34,11 +40,13 @@ app.get('/get', (req, res) => {
     const id = req.query.id;
     const limit = req.query.limit;
     const order = req.query.order;
+    const groupBy = req.query.groupBy;
     const lines = getLinesFor(name, id);
-    const items = formatItems(lines);
+    const items = formatItems(lines, name);
     const orderedItems = orderItems(items, order);
     const limitedItems = splitItems(orderedItems, limit);
-    res.send(limitedItems);
+    const groupedItems = groupByItems(limitedItems, groupBy)
+    res.send(groupedItems);
 });
 
 app.listen(port, () => {
@@ -58,19 +66,9 @@ function getLinesFor(name, id) {
     return log.split('\n');
 }
 
-function formatItems(lines) {
+function formatItems(lines, name) {
     // .map with left null values in array
-    const items = lines.flatMap(line => {
-        if (line?.trim()) {
-            return {
-                name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
-                date: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
-                link: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
-                followers_count: line.split(LOG_FILES_SEPARATOR)[3]?.trim(),
-            };
-        }
-        return [];
-    });
+    const items = lines.flatMap(mapFns[name]);
     return items;
 }
 
@@ -82,6 +80,32 @@ function orderItems(items, order) {
     if (order === 'date')
         return items.sort((a, b) => new Date(a.date) - new Date(b.date));
     if (order)
-        return items.sort((a, b) => a[order] - b[order]);
+        return items.sort((a, b) => b[order] - a[order]);
     return items;
-} 
+}
+
+function groupByItems(limitedItems, groupBy) {
+    if (!groupBy)
+        return limitedItems;
+    const grouped = [];
+    while (limitedItems.length > 0) {
+        const singleGroup = [];
+        for (let i = 0; i < groupBy; i++) {
+            singleGroup.push(limitedItems.shift());
+        }
+        grouped.push(singleGroup);
+    }
+    return grouped;
+}
+
+function upcomingMap(line) {
+    if (line?.trim()) {
+        return {
+            name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
+            date: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
+            link: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
+            followers_count: line.split(LOG_FILES_SEPARATOR)[3]?.trim(),
+        };
+    }
+    return [];
+}
