@@ -4,6 +4,7 @@ const LOG_FILES_SEPARATOR = '|||';
 const express = require('express');
 const app = express();
 const port = 3044;
+const dirPath = `${__dirname}/out`;
 // ERROR HANDLING
 const { transporter, mailOptions } = require('./mail.js');
 process.on('uncaughtException', err => {
@@ -53,6 +54,30 @@ app.get('/get', (req, res) => {
     res.send(groupedItems);
 });
 
+app.post('/save', (req, res) => {
+    const dir = req.body.dir ?? 'temp';
+    const filename = req.body.filename ?? new Date().toISOString();
+    let data = req.body.data;
+    if (!data) {
+        return res.status(400).json({ status: `no`, err: `no data` });
+    }
+    // string
+    data = "" + data
+    // with newline
+    if (!data.endsWith('\n')) {
+        data += '\n';
+    }
+    if (!fs.existsSync(`${dirPath}/${dir}`)) {
+        fs.mkdirSync(`${dirPath}/${dir}`);
+    }
+    const writeStream = fs.createWriteStream(`${dirPath}/${dir}/${filename}.log`, {
+        flags: 'a'
+    });
+    writeStream.write(data);
+    writeStream.end();
+    res.json({ status: `ok` });
+});
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
     cacheRecentLogs();
@@ -69,7 +94,7 @@ function getLinesFor(name, id = 'recent', ids = []) {
     if (ids.length) {
         const logs = [];
         for (const id of ids) {
-           logs.push(fs.readFileSync(`./out/${name}/${command_files[id]}`, 'utf8')); 
+            logs.push(fs.readFileSync(`./out/${name}/${command_files[id]}`, 'utf8'));
         }
         log = logs.join('');
     } else {
