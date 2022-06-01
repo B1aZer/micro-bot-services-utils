@@ -38,6 +38,9 @@ const mapFns = {
 //get?name&ids=recent&limit=5
 app.get('/get', (req, res) => {
     const name = req.query.name;
+    if (!name) {
+        return res.status(400).json({ status: `no`, err: `no name` });
+    }
     const id = req.query.id;
     const ids = req.query.ids;
     const limit = req.query.limit;
@@ -152,6 +155,9 @@ function filterItems(items, threshold) {
 function upcomingMap(line) {
     if (line?.trim()) {
         return {
+            handle: line.split(LOG_FILES_SEPARATOR)[2]?.trim()
+                ? `@${line.split(LOG_FILES_SEPARATOR)[2]?.trim().split('/')[line.split(LOG_FILES_SEPARATOR)[2]?.trim().split('/').length - 1]}`
+                : '',
             name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
             date: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
             link: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
@@ -164,6 +170,7 @@ function upcomingMap(line) {
 function trendingMap(line) {
     if (line?.trim()) {
         return {
+            handle: `@${line.split(LOG_FILES_SEPARATOR)[0]?.trim()}`,
             name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
             date: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
             followers_count: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
@@ -175,6 +182,9 @@ function trendingMap(line) {
 function whitelistsMap(line) {
     if (line?.trim()) {
         return {
+            handle: line.split(LOG_FILES_SEPARATOR)[1]?.trim()
+                ? `@${line.split(LOG_FILES_SEPARATOR)[1]?.trim().split('/')[line.split(LOG_FILES_SEPARATOR)[1]?.trim().split('/').length - 1]}`
+                : '',
             name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
             link: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
             date: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
