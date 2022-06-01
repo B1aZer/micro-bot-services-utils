@@ -25,6 +25,7 @@ app.use(express.json());
 const mapFns = {
     'rare-upcoming': upcomingMap,
     'twitter-following': trendingMap,
+    'prominent-whitelists': whitelistsMap,
 }
 
 //save?name&data=
@@ -44,10 +45,10 @@ app.get('/get', (req, res) => {
     const threshold = req.query.thresh;
     const lines = getLinesFor(name, id, ids);
     const items = formatItems(lines, name);
-    const orderedItems = orderItems(items, order);
-    const uniqueItems = [...new Set(orderedItems)];
+    const uniqueItems = [...new Set(items)];
     const filteredItems = filterItems(uniqueItems, threshold);
-    const limitedItems = splitItems(filteredItems, limit);
+    const orderedItems = orderItems(filteredItems, order);
+    const limitedItems = splitItems(orderedItems, limit);
     const groupedItems = groupByItems(limitedItems, groupBy)
     res.send(groupedItems);
 });
@@ -90,6 +91,11 @@ function splitItems(items, limit) {
 function orderItems(items, order) {
     if (order === 'date')
         return items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (order === 'random') {
+        shuffleArray(items);
+        return items;
+    }
+    // desc order
     if (order)
         return items.sort((a, b) => b[order] - a[order]);
     return items;
@@ -111,6 +117,8 @@ function groupByItems(limitedItems, groupBy) {
 }
 
 function filterItems(items, threshold) {
+    // skip blanks
+    items = items.filter(el => el.name);
     if (!threshold)
         return items;
     return items.filter(el => +el.followers_count >= threshold);
@@ -137,4 +145,23 @@ function trendingMap(line) {
         };
     }
     return [];
+}
+
+function whitelistsMap(line) {
+    if (line?.trim()) {
+        return {
+            name: line.split(LOG_FILES_SEPARATOR)[0]?.trim(),
+            link: line.split(LOG_FILES_SEPARATOR)[1]?.trim(),
+            date: line.split(LOG_FILES_SEPARATOR)[2]?.trim(),
+            followers_count: line.split(LOG_FILES_SEPARATOR)[3]?.trim(),
+        };
+    }
+    return [];
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
