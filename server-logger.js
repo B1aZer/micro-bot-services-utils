@@ -52,7 +52,7 @@ app.get('/get', (req, res) => {
     const filterParams = { threshold, notIn, notInIds };
     const lines = getLinesFor(name, id, ids);
     const items = formatItems(lines, name);
-    const uniqueItems = [...new Set(items)];
+    const uniqueItems = filterUnique(items);
     const filteredItems = filterItems(uniqueItems, filterParams);
     const orderedItems = orderItems(filteredItems, order);
     const limitedItems = splitItems(orderedItems, limit);
@@ -215,4 +215,12 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+function filterUnique(items) {
+    return items.filter((value, index, self) =>
+        index === self.findIndex((t) => (
+            t.place === value.place && t.name === value.name
+        ))
+    );
 }
