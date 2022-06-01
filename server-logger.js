@@ -76,6 +76,7 @@ app.post('/save', (req, res) => {
     const writeStream = fs.createWriteStream(`${dirPath}/${dir}/${filename}.log`, {
         flags: 'a'
     });
+    console.log(`Savind ${data} to ${filename}`);
     writeStream.write(data);
     writeStream.end();
     res.json({ status: `ok` });
