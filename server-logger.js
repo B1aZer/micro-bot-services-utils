@@ -47,10 +47,13 @@ app.get('/get', (req, res) => {
     const order = req.query.order;
     const groupBy = req.query.groupBy;
     const threshold = req.query.thresh;
+    const notIn = req.query.notIn;
+    const notInIds = req.query.notInIds;
+    const filterParams = { threshold, notIn, notInIds };
     const lines = getLinesFor(name, id, ids);
     const items = formatItems(lines, name);
     const uniqueItems = [...new Set(items)];
-    const filteredItems = filterItems(uniqueItems, threshold);
+    const filteredItems = filterItems(uniqueItems, filterParams);
     const orderedItems = orderItems(filteredItems, order);
     const limitedItems = splitItems(orderedItems, limit);
     const groupedItems = groupByItems(limitedItems, groupBy)
@@ -98,7 +101,8 @@ function getLinesFor(name, id = 'recent', ids = []) {
     if (ids.length) {
         const logs = [];
         for (const id of ids) {
-            logs.push(fs.readFileSync(`./out/${name}/${command_files[id]}`, 'utf8'));
+            if (fs.existsSync(`./out/${name}/${command_files[id]}`))
+                logs.push(fs.readFileSync(`./out/${name}/${command_files[id]}`, 'utf8'));
         }
         log = logs.join('');
     } else {
@@ -145,12 +149,23 @@ function groupByItems(limitedItems, groupBy) {
     return grouped;
 }
 
-function filterItems(items, threshold) {
+function filterItems(items, filterParams) {
     // skip blanks
     items = items.filter(el => el.name);
-    if (!threshold)
-        return items;
-    return items.filter(el => +el.followers_count >= threshold);
+    if (filterParams.threshold)
+        items = items.filter(el => +el.followers_count >= filterParams.threshold);
+    if (filterParams.notIn) {
+        if (filterParams.notInIds) {
+            notInLines = getLinesFor(filterParams.notIn, undefined, filterParams.notInIds);
+            console.log(notInLines);
+            items = items.filter(el => notInLines.indexOf(el.handle) === -1);
+        } else {
+            notInLines = getLinesFor(filterParams.notIn);
+            console.log(notInLines);
+            items = items.filter(el => notInLines.indexOf(el.handle) === -1);
+        }
+    }
+    return items;
 }
 
 function upcomingMap(line) {
