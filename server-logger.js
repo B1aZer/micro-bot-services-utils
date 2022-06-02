@@ -103,7 +103,10 @@ function getLinesFor(name, id = 'recent', ids = []) {
         }
         log = logs.join('');
     } else {
-        log = fs.readFileSync(`./out/${name}/${command_files[fileNum]}`, 'utf8');
+        if (fs.existsSync(`./out/${name}/${command_files[fileNum]}`))
+            log = fs.readFileSync(`./out/${name}/${command_files[fileNum]}`, 'utf8');
+        else
+            log = '';
     }
     return log.split('\n');
 }
