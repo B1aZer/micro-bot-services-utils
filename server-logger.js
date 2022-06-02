@@ -27,13 +27,10 @@ const mapFns = {
     'rare-upcoming': upcomingMap,
     'twitter-following': trendingMap,
     'prominent-whitelists': whitelistsMap,
+    'twitter-mentions': mentionsMap,
 }
 
-//save?name&data=
-// open file
-//write
-//close file
-//cleanup
+// handle is primary key
 
 //get?name&ids=recent&limit=5
 app.get('/get', (req, res) => {
@@ -118,6 +115,8 @@ function formatItems(lines, name) {
 }
 
 function splitItems(items, limit) {
+    if (!limit)
+        return items;
     return items.slice(0, limit);
 }
 
@@ -151,7 +150,7 @@ function groupByItems(limitedItems, groupBy) {
 
 function filterItems(items, filterParams) {
     // skip blanks
-    items = items.filter(el => el.name);
+    items = items.filter(el => el.handle);
     if (filterParams.threshold)
         items = items.filter(el => +el.followers_count >= filterParams.threshold);
     if (filterParams.notIn) {
@@ -210,6 +209,15 @@ function whitelistsMap(line) {
     return [];
 }
 
+function mentionsMap(line) {
+    if (line?.trim()) {
+        return {
+            handle: line.trim()
+        };
+    }
+    return [];
+}
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -220,7 +228,7 @@ function shuffleArray(array) {
 function filterUnique(items) {
     return items.filter((value, index, self) =>
         index === self.findIndex((t) => (
-            t.place === value.place && t.name === value.name
+            t.handle === value.handle
         ))
     );
 }
