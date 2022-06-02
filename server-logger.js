@@ -92,7 +92,7 @@ function cacheRecentLogs() {
 }
 
 function getLinesFor(name, id = 'recent', ids = []) {
-    const fileNum = id === 'recent' ? 0 : num;
+    const fileNum = id === 'recent' ? 0 : id;
     const command_files = fs.readdirSync(`./out/${name}`).reverse();
     let log;
     if (ids.length) {
