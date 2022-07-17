@@ -4,12 +4,12 @@ module.exports = {
         const headers = [
             {
                 headers: {
-                    "X-API-KEY": "b9ab6f08fe5e408fb9c61f1fb4dabf60"
+                    "X-API-KEY": ""
                 }
             },
             {
                 headers: {
-                    "X-API-KEY": "0f4cecba10aa45c49abdd314286d7c8a"
+                    "X-API-KEY": ""
                 }
             },
             {}
